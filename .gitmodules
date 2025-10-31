@@ -1,0 +1,3 @@
+[submodule "lom"]
+	path = vendor/lom
+	url = https://github.com/omer-biz/lom.git
