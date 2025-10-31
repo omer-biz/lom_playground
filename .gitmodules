@@ -1,3 +1,6 @@
-[submodule "lom"]
+[submodule "vendor/lom"]
 	path = vendor/lom
 	url = https://github.com/omer-biz/lom.git
+[submodule "vendor/lua"]
+	path = vendor/lua
+	url = https://github.com/lua/lua
