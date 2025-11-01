@@ -3,35 +3,19 @@
   <head>
     <meta charset="UTF-8" />
     <title>lom Playground</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   </head>
   <body>
     <h1>lom + Lua WASM Playground</h1>
     <textarea id="code" rows="10" cols="50">
-print("Hello from Lua in WASM!")
-  </textarea
+print("Hello from Lua in WASM!")</textarea
     >
+
     <br />
+
     <button id="run">Run</button>
     <pre id="output"></pre>
 
-    <script type="module">
-      import createLomModule from "./lom.js";
-
-      const lomModule = await createLomModule();
-
-      const lom_init = lomModule.cwrap("lom_init", null, []);
-      const lom_run = lomModule.cwrap("lom_run", "string", ["string"]);
-      const lom_close = lomModule.cwrap("lom_close", null, []);
-
-      lom_init();
-
-      document.getElementById("run").onclick = () => {
-        const code = document.getElementById("code").value;
-        const out = lom_run(code);
-        document.getElementById("output").textContent = out ?? "(no output)";
-      };
-
-      window.addEventListener("beforeunload", lom_close);
-    </script>
+    <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

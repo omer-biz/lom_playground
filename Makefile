@@ -1,7 +1,8 @@
 LUA_DIR = vendor/lua
 LOM_DIR = vendor/lom
-OUT_JS = lom.js
-OUT_WASM = lom.wasm
+BUILD_DIR = build/
+OUT_JS = $(BUILD_DIR)/lom.js
+OUT_WASM = $(BUILD_DIR)/lom.wasm
 
 LUA_SRCS = $(filter-out $(LUA_DIR)/onelua.c, $(wildcard $(LUA_DIR)/*.c))
 LOM_SRCS = $(wildcard $(LOM_DIR)/src/*.c)
@@ -16,9 +17,10 @@ EMFLAGS = -s WASM=1 \
 all: $(OUT_JS)
 
 $(OUT_JS): $(LUA_SRCS) $(LOM_SRCS)
+	@mkdir -p "${BUILD_DIR}"
 	emcc $(CFLAGS) $(LUA_SRCS) $(LOM_SRCS) $(EMFLAGS) -o $(OUT_JS)
 
 clean:
-	rm -f $(OUT_JS) $(OUT_WASM)
+	rm -rf $(BUILD_DIR)
 
 .PHONY: all clean
