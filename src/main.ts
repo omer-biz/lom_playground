@@ -1,5 +1,5 @@
-import "./style.css";
 import createLomModule from "../build/lom.js";
+import { Elm } from "./Main.elm";
 
 const lomModule = await createLomModule();
 
@@ -9,10 +9,10 @@ const lom_close = lomModule.cwrap("lom_close", null, []);
 
 lom_init();
 
-document.getElementById("run").onclick = () => {
-  const code = document.getElementById("code").value;
-  const out = lom_run(code);
-  document.getElementById("output").textContent = out ?? "(no output)";
-};
+let app = Elm.Main.init();
+
+app.ports.runLuaCode.subscribe(function (code) {
+  lom_run(code);
+});
 
 window.addEventListener("beforeunload", lom_close);
