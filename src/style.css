@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+.section-header {
+    position: relative;
+}
+.section-header .underline {
+    height: 3px;
+    width: 0%;
+    background: linear-gradient(90deg, var(--tw-gradient-stops));
+    --tw-gradient-from: #4f46e5;
+    --tw-gradient-to: #06b6d4;
+    transition: width 0.18s ease;
+}
+.section-active .underline {
+    width: 100%;
+}
+pre {
+    white-space: pre-wrap;
+    word-break: break-word;
+}

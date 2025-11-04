@@ -1,8 +1,8 @@
 port module Main exposing (..)
 
 import Browser exposing (Document)
-import Html exposing (Html, button, div, h1, header, main_, pre, section, span, text, textarea)
-import Html.Attributes exposing (attribute, class, cols, id, placeholder, rows)
+import Html exposing (Html, button, div, h1, header, main_, pre, section, text, textarea)
+import Html.Attributes exposing (attribute, class, placeholder)
 import Html.Events exposing (onClick, onInput)
 
 
@@ -55,7 +55,6 @@ view model =
     , body =
         [ div [ class "max-w-[1400px] mx-auto" ]
             [ viewHeader
-            , viewControls
             , viewMain
             ]
         ]
@@ -64,15 +63,15 @@ view model =
 
 viewMain : Html msg
 viewMain =
-    main_ [ class "grid grid-cols-1 gap-4" ]
-        [ section [ class "bg-white rounded-lg shadow p-4" ]
+    main_ [ class "grid gap-4 mt-8" ]
+        [ div [ class "grid grid-cols-1 md:grid-cols-2 gap-4" ]
             [ viewLuaCode
             , viewTextAndResult
             ]
         , div [ class "flex gap-3 justify-end" ]
-            [ button [ class "px-4 py-2 rounded bg-green-600 text-white", id "runBtn" ]
+            [ button [ class "px-4 py-2 rounded bg-green-600 text-white" ]
                 [ text "Run          " ]
-            , button [ class "px-4 py-2 rounded border", id "shareConfig" ]
+            , button [ class "px-4 py-2 rounded border" ]
                 [ text "Export JSON          " ]
             ]
         ]
@@ -80,7 +79,7 @@ viewMain =
 
 viewTextAndResult : Html msg
 viewTextAndResult =
-    div [ class "grid grid-cols-1 md:grid-cols-2 gap-4" ]
+    div [ class "flex-col gap-2 space-y-2 md:flex" ]
         [ viewText
         , viewResult
         ]
@@ -107,7 +106,7 @@ viewResult =
                             ]
                         ]
                     , div [ class "flex items-center gap-2" ]
-                        [ button [ class "text-sm px-2 py-1 rounded border", id "clearOutput" ]
+                        [ button [ class "text-sm px-2 py-1 rounded border" ]
                             [ text "Clear                  " ]
                         ]
                     ]
@@ -126,16 +125,16 @@ viewResult =
     section [ class "bg-white rounded-lg shadow p-4" ]
         [ viewSectionHeader
         , viewTabHeader
-        , pre [ class "p-3 bg-slate-100 min-h-[160px] rounded text-sm font-mono", id "stdout" ]
+        , pre [ class "p-3 bg-slate-100 min-h-[160px] rounded text-sm font-mono" ]
             []
-        , pre [ class "p-3 bg-rose-100 min-h-[160px] rounded text-sm font-mono hidden", id "stdout" ]
+        , pre [ class "p-3 bg-rose-100 min-h-[160px] rounded text-sm font-mono hidden" ]
             []
         ]
 
 
 viewText : Html msg
 viewText =
-    section [ class "bg-white rounded-lg shadow p-4", id "textSection" ]
+    section [ class "bg-white rounded-lg shadow p-4" ]
         [ div [ class "section-header" ]
             [ div [ class "flex items-center justify-between mb-3" ]
                 [ div [ class "flex items-center gap-2" ]
@@ -149,18 +148,18 @@ viewText =
                         [ div [ class "font-medium" ]
                             [ text "Text to parse" ]
                         , div [ class "text-xs text-slate-500" ]
-                            [ text "The input string that will be fed to the grammar.                    " ]
+                            [ text "The input string that will be fed to the grammar." ]
                         ]
                     ]
                 , div [ class "flex items-center gap-2" ]
-                    [ button [ class "text-sm px-2 py-1 rounded border", id "clearText" ]
+                    [ button [ class "text-sm px-2 py-1 rounded border" ]
                         [ text "Clear                  " ]
                     ]
                 ]
             , div [ class "underline h-0.5 bg-gradient-to-r from-indigo-600 to-cyan-400" ]
                 []
             ]
-        , textarea [ class "w-full min-h-[180px] font-mono text-sm p-3 border rounded resize-y", id "inputText", placeholder "Type the text to parse" ]
+        , textarea [ class "w-full min-h-[180px] font-mono text-sm p-3 border rounded resize-y", placeholder "Type the text to parse" ]
             []
         ]
 
@@ -171,8 +170,7 @@ viewLuaCode =
         viewCodeArea =
             textarea
                 [ class "w-full min-h-[340px] font-mono text-sm p-3 border rounded resize-y"
-                , id "grammar"
-                , placeholder "-- write your lua grammar here"
+                , placeholder "-- write your lua code here"
                 , attribute "spellcheck" "false"
                 ]
                 []
@@ -191,28 +189,19 @@ viewLuaCode =
                             [ div [ class "font-medium" ]
                                 [ text "Grammar (Lua)" ]
                             , div [ class "text-xs text-slate-500" ]
-                                [ text "The parser definition. Highest priority pane.                  " ]
+                                [ text "The parser definition. Highest priority pane." ]
                             ]
                         ]
                     , div [ class "flex items-center gap-2" ]
-                        [ button [ class "text-sm px-2 py-1 rounded border", id "downloadGrammar" ]
-                            [ text "Download                " ]
-                        ]
+                        [ button [ class "text-sm px-2 py-1 rounded border" ] [ text "clear" ] ]
                     ]
                 , div [ class "underline h-0.5 bg-gradient-to-r from-indigo-600 to-cyan-400" ]
                     []
                 ]
     in
-    section [ class "section-header" ]
+    section [ class "bg-white rounded-lg shadow p-4" ]
         [ viewSectionHeader
         , viewCodeArea
-        ]
-
-
-viewControls : Html msg
-viewControls =
-    div [ class "flex items-center gap-3 mb-4" ]
-        [ button [ class "ml-2 px-3 py-1 rounded border text-sm" ] [ text "Format" ]
         ]
 
 
@@ -221,12 +210,10 @@ viewHeader =
     header [ class "flex items-center gap-3 text-xl font-semibold" ]
         [ h1 []
             [ text "svg logo"
-            , text "Play ground"
-            , span [ class "text-sm text-slate-500 ml-2" ] [ text "Lom Playground" ]
+            , text "Lom Playground"
             ]
         , div [ class "flex items-center gap-3" ]
-            [ button [ class "px-3 py-1 rounded bg-indigo-600 text-white text-sm" ] [ text "Wide Mode" ]
-            , button [ class "px-3 py-1 rounded border border-slate-200 text-sm" ] [ text "Copy Share Link" ]
+            [ button [ class "px-3 py-1 rounded border border-slate-200 text-sm" ] [ text "Copy Share Link" ]
             ]
         ]
 
