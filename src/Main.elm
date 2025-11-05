@@ -18,6 +18,7 @@ port lomStdOut : (String -> msg) -> Sub msg
 type alias Model =
     { code : String
     , output : List ConsoleOutput
+    , input : String
     }
 
 
@@ -31,13 +32,14 @@ type Msg
     | UpdateCode String
     | UpdateStdErr String
     | UpdateStdOut String
+    | UpdateInput String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Run ->
-            ( model, runLuaCode model.code )
+            ( { model | output = [] }, runLuaCode model.code )
 
         UpdateCode code ->
             ( { model | code = code }, Cmd.none )
@@ -48,6 +50,9 @@ update msg model =
         UpdateStdOut stdout ->
             ( { model | output = StdOut stdout :: model.output }, Cmd.none )
 
+        UpdateInput input ->
+            ( { model | input = input }, Cmd.none )
+
 
 view : Model -> Document Msg
 view model =
@@ -55,38 +60,30 @@ view model =
     , body =
         [ div [ class "max-w-[1400px] mx-auto" ]
             [ viewHeader
-            , viewMain
+            , viewMain model
             ]
         ]
     }
 
 
-viewMain : Html msg
-viewMain =
-    main_ [ class "grid gap-4 mt-8" ]
-        [ div [ class "grid grid-cols-1 md:grid-cols-2 gap-4" ]
-            [ viewLuaCode
-            , viewTextAndResult
-            ]
-        , div [ class "flex gap-3 justify-end" ]
-            [ button [ class "px-4 py-2 rounded bg-green-600 text-white" ]
-                [ text "Run          " ]
-            , button [ class "px-4 py-2 rounded border" ]
-                [ text "Export JSON          " ]
-            ]
+viewMain : Model -> Html Msg
+viewMain model =
+    main_ [ class "grid grid-cols-1 md:grid-cols-2 gap-4 mt-8" ]
+        [ viewLuaCode model.code
+        , viewTextAndResult model
         ]
 
 
-viewTextAndResult : Html msg
-viewTextAndResult =
+viewTextAndResult : Model -> Html Msg
+viewTextAndResult model =
     div [ class "flex-col gap-2 space-y-2 md:flex" ]
-        [ viewText
-        , viewResult
+        [ viewText model.input
+        , viewResult model.output
         ]
 
 
-viewResult : Html msg
-viewResult =
+viewResult : List ConsoleOutput -> Html msg
+viewResult output =
     let
         viewSectionHeader =
             div [ class "section-header" ]
@@ -114,26 +111,36 @@ viewResult =
                     []
                 ]
 
-        viewTabHeader =
-            div [ class "flex gap-2 mb-3" ]
-                [ button [ class "tabBtn px-3 py-1 rounded bg-indigo-600 text-white text-sm", attribute "data-tab" "stdout" ]
-                    [ text "stdout              " ]
-                , button [ class "tabBtn px-3 py-1 rounded border text-sm", attribute "data-tab" "stderr" ]
-                    [ text "stderr              " ]
-                ]
+        viewStderr err =
+            pre [ class "p-3 bg-rose-100  rounded text-sm font-mono" ]
+                [ text err ]
+
+        viewStdout out =
+            pre [ class "p-3 bg-slate-100 rounded text-sm font-mono" ]
+                [ text out ]
+
+        viewAll : List (Html msg)
+        viewAll =
+            output
+                |> List.reverse
+                |> List.map
+                    (\o ->
+                        case o of
+                            StdErr err ->
+                                viewStderr err
+
+                            StdOut out ->
+                                viewStdout <| Debug.log "out" out
+                    )
     in
     section [ class "bg-white rounded-lg shadow p-4" ]
         [ viewSectionHeader
-        , viewTabHeader
-        , pre [ class "p-3 bg-slate-100 min-h-[160px] rounded text-sm font-mono" ]
-            []
-        , pre [ class "p-3 bg-rose-100 min-h-[160px] rounded text-sm font-mono hidden" ]
-            []
+        , div [ class "min-h-[160px]" ] <| Debug.log "all" viewAll
         ]
 
 
-viewText : Html msg
-viewText =
+viewText : String -> Html Msg
+viewText input =
     section [ class "bg-white rounded-lg shadow p-4" ]
         [ div [ class "section-header" ]
             [ div [ class "flex items-center justify-between mb-3" ]
@@ -159,21 +166,26 @@ viewText =
             , div [ class "underline h-0.5 bg-gradient-to-r from-indigo-600 to-cyan-400" ]
                 []
             ]
-        , textarea [ class "w-full min-h-[180px] font-mono text-sm p-3 border rounded resize-y", placeholder "Type the text to parse" ]
-            []
+        , textarea
+            [ class "w-full min-h-[180px] font-mono text-sm p-3 border rounded resize-y"
+            , placeholder "Type the text to parse"
+            , onInput UpdateInput
+            ]
+            [ text input ]
         ]
 
 
-viewLuaCode : Html msg
-viewLuaCode =
+viewLuaCode : String -> Html Msg
+viewLuaCode code =
     let
         viewCodeArea =
             textarea
                 [ class "w-full min-h-[340px] font-mono text-sm p-3 border rounded resize-y"
                 , placeholder "-- write your lua code here"
                 , attribute "spellcheck" "false"
+                , onInput UpdateCode
                 ]
-                []
+                [ text code ]
 
         viewSectionHeader =
             div [ class "section-header" ]
@@ -187,13 +199,18 @@ viewLuaCode =
                           -- ,
                           div []
                             [ div [ class "font-medium" ]
-                                [ text "Grammar (Lua)" ]
+                                [ text "Lua" ]
                             , div [ class "text-xs text-slate-500" ]
-                                [ text "The parser definition. Highest priority pane." ]
+                                [ text "The parser definition. Lom code to parse the text." ]
                             ]
                         ]
                     , div [ class "flex items-center gap-2" ]
-                        [ button [ class "text-sm px-2 py-1 rounded border" ] [ text "clear" ] ]
+                        [ button
+                            [ class "px-4 py-1 rounded bg-green-500 text-white"
+                            , onClick Run
+                            ]
+                            [ text "Run" ]
+                        ]
                     ]
                 , div [ class "underline h-0.5 bg-gradient-to-r from-indigo-600 to-cyan-400" ]
                     []
@@ -226,7 +243,7 @@ subscriptions _ =
 main : Program () Model Msg
 main =
     Browser.document
-        { init = \() -> ( Model "print('Hello from Lua in WASM!')" [], Cmd.none )
+        { init = \() -> ( Model "print('Hello from Lua in WASM!')" [] "", Cmd.none )
         , view = view
         , update = update
         , subscriptions = subscriptions

@@ -13,8 +13,5 @@ const lom_run = lomModule.cwrap("lom_run", "string", ["string"]);
 const lom_close = lomModule.cwrap("lom_close", null, []);
 
 lom_init();
-
-
 app.ports.runLuaCode.subscribe(lom_run);
-
 window.addEventListener("beforeunload", lom_close);
