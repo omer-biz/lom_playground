@@ -6,7 +6,7 @@ import Html.Attributes exposing (attribute, class, placeholder)
 import Html.Events exposing (onClick, onInput)
 
 
-port runLuaCode : String -> Cmd msg
+port runLuaCode : { code : String, input : String } -> Cmd msg
 
 
 port lomStdErr : (String -> msg) -> Sub msg
@@ -39,7 +39,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Run ->
-            ( { model | output = [] }, runLuaCode model.code )
+            ( { model | output = [] }, runLuaCode { code = model.code, input = model.input } )
 
         UpdateCode code ->
             ( { model | code = code }, Cmd.none )
@@ -130,12 +130,12 @@ viewResult output =
                                 viewStderr err
 
                             StdOut out ->
-                                viewStdout <| Debug.log "out" out
+                                viewStdout out
                     )
     in
     section [ class "bg-white rounded-lg shadow p-4" ]
         [ viewSectionHeader
-        , div [ class "min-h-[160px]" ] <| Debug.log "all" viewAll
+        , div [ class "min-h-[160px]" ]  viewAll
         ]
 
 

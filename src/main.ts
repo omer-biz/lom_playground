@@ -9,9 +9,11 @@ const lomModule = await createLomModule({
 });
 
 const lom_init = lomModule.cwrap("lom_init", null, []);
-const lom_run = lomModule.cwrap("lom_run", "string", ["string"]);
+const lom_run = lomModule.cwrap("lom_run", "string", ["string", "string"]);
 const lom_close = lomModule.cwrap("lom_close", null, []);
 
 lom_init();
-app.ports.runLuaCode.subscribe(lom_run);
+app.ports.runLuaCode.subscribe(function (model: { code: string, input: string }) {
+    lom_run(model.code, model.input);
+});
 window.addEventListener("beforeunload", lom_close);
