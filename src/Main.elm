@@ -1,12 +1,20 @@
 port module Main exposing (..)
 
 import Browser exposing (Document)
+import Browser.Events as BE
 import Html exposing (Html, button, div, h1, header, main_, pre, section, text, textarea)
-import Html.Attributes exposing (attribute, class, placeholder)
-import Html.Events exposing (onClick, onInput)
+import Html.Attributes exposing (attribute, class, id, placeholder, style)
+import Html.Events exposing (onClick, onInput, onMouseDown)
+import Json.Decode as D
 
 
 port runLuaCode : { code : String, input : String } -> Cmd msg
+
+
+port listenDrag : String -> Cmd msg
+
+
+port stopDrag : String -> Cmd msg
 
 
 port lomStdErr : (String -> msg) -> Sub msg
@@ -15,10 +23,18 @@ port lomStdErr : (String -> msg) -> Sub msg
 port lomStdOut : (String -> msg) -> Sub msg
 
 
+port draggedHorizontal : (Float -> msg) -> Sub msg
+
+
+port draggedVertical : (Float -> msg) -> Sub msg
+
+
 type alias Model =
     { code : String
     , output : List ConsoleOutput
     , input : String
+    , dragHorizontal : DragState
+    , dragVertical : DragState
     }
 
 
@@ -27,12 +43,25 @@ type ConsoleOutput
     | StdOut String
 
 
+type DragState
+    = Static Float
+    | Moving Float
+
+
+type Direction
+    = Horizontal
+    | Vertical
+
+
 type Msg
     = Run
     | UpdateCode String
     | UpdateStdErr String
     | UpdateStdOut String
     | UpdateInput String
+    | DragStart Direction
+    | DragStop Direction
+    | DragMove Direction Float
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -53,31 +82,113 @@ update msg model =
         UpdateInput input ->
             ( { model | input = input }, Cmd.none )
 
+        DragStart direction ->
+            let
+                f =
+                    toFraction (getDragState direction model)
+            in
+            ( updateDragState model direction (Moving f)
+            , dragPort direction listenDrag
+            )
+
+        DragStop direction ->
+            let
+                f =
+                    toFraction (getDragState direction model)
+            in
+            ( updateDragState model direction (Static f)
+            , dragPort direction stopDrag
+            )
+
+        DragMove direction f ->
+            ( updateDragState model
+                direction
+                (-- if isDragging then
+                 Moving f
+                 -- else
+                 --    Static (toFraction <| getDragState direction model)
+                )
+            , Cmd.none
+            )
+
+
+dragPort : Direction -> (String -> a) -> a
+dragPort direction handler =
+    case direction of
+        Horizontal ->
+            handler "horizontal"
+
+        Vertical ->
+            handler "vertical"
+
+
+getDragState :
+    Direction
+    -> { a | dragHorizontal : b, dragVertical : b }
+    -> b
+getDragState direction model =
+    case direction of
+        Horizontal ->
+            model.dragHorizontal
+
+        Vertical ->
+            model.dragVertical
+
+
+toFraction : DragState -> Float
+toFraction dragState =
+    case dragState of
+        Static f ->
+            f
+
+        Moving f ->
+            f
+
+
+updateDragState : Model -> Direction -> DragState -> Model
+updateDragState model direction newState =
+    case direction of
+        Horizontal ->
+            { model | dragHorizontal = newState }
+
+        Vertical ->
+            { model | dragVertical = newState }
+
 
 view : Model -> Document Msg
 view model =
     { title = "Lom Playground"
     , body =
-        [ div [ class "max-w-[1400px] mx-auto" ]
-            [ viewHeader
-            , viewMain model
-            ]
+        [ viewHeader
+        , viewMain model
         ]
     }
 
 
 viewMain : Model -> Html Msg
 viewMain model =
-    main_ [ class "grid grid-cols-1 md:grid-cols-2 gap-4 mt-8" ]
-        [ viewLuaCode model.code
+    main_ [ class "flex flex-1 overflow-hidden" ]
+        [ viewLuaCode model
+        , div
+            [ id "verticalDivider"
+            , class "divider-x"
+            , onMouseDown <| DragStart Vertical
+            ]
+            []
         , viewTextAndResult model
         ]
 
 
 viewTextAndResult : Model -> Html Msg
 viewTextAndResult model =
-    div [ class "flex-col gap-2 space-y-2 md:flex" ]
-        [ viewText model.input
+    div [ id "rightPane", class "flex flex-col flex-1" ]
+        [ viewText model
+        , div
+            [ id "horizontalDivider"
+            , class "divider-y"
+            , onMouseDown <| DragStart Horizontal
+            ]
+            []
         , viewResult model.output
         ]
 
@@ -99,7 +210,7 @@ viewResult output =
                             [ div [ class "font-medium" ]
                                 [ text "Output" ]
                             , div [ class "text-xs text-slate-500" ]
-                                [ text "Shows stdout and stderr (errors) from the parser.                    " ]
+                                [ text "Shows stdout and stderr (errors) from the parser." ]
                             ]
                         ]
                     , div [ class "flex items-center gap-2" ]
@@ -133,15 +244,20 @@ viewResult output =
                                 viewStdout out
                     )
     in
-    section [ class "bg-white rounded-lg shadow p-4" ]
+    section [ id "outputPane", class "bg-white rounded-lg shadow p-4 flex-1 flex flex-col" ]
         [ viewSectionHeader
-        , div [ class "min-h-[160px]" ]  viewAll
+        , div [ class "overflow-y-scroll" ] viewAll
         ]
 
 
-viewText : String -> Html Msg
-viewText input =
-    section [ class "bg-white rounded-lg shadow p-4" ]
+viewText : Model -> Html Msg
+viewText model =
+    section
+        [ id "inputPane"
+        , class "flex-1 border-b border-slate-200 p-4 flex flex-col"
+        , style "height" (String.fromFloat (100 * toFraction model.dragHorizontal) ++ "%")
+        , style "flex" "none"
+        ]
         [ div [ class "section-header" ]
             [ div [ class "flex items-center justify-between mb-3" ]
                 [ div [ class "flex items-center gap-2" ]
@@ -167,25 +283,25 @@ viewText input =
                 []
             ]
         , textarea
-            [ class "w-full min-h-[180px] font-mono text-sm p-3 border rounded resize-y"
+            [ class "flex-1 w-full font-mono text-sm bg-slate-100 rounded-lg p-3 resize-none focus:outline-none focus:ring-2 focus:ring-blue-400"
             , placeholder "Type the text to parse"
             , onInput UpdateInput
             ]
-            [ text input ]
+            [ text model.input ]
         ]
 
 
-viewLuaCode : String -> Html Msg
-viewLuaCode code =
+viewLuaCode : Model -> Html Msg
+viewLuaCode model =
     let
         viewCodeArea =
             textarea
-                [ class "w-full min-h-[340px] font-mono text-sm p-3 border rounded resize-y"
+                [ class "flex-1 w-full font-mono text-sm bg-slate-100 rounded-lg p-3 resize-none focus:outline-none focus:ring-2 focus:ring-blue-400"
                 , placeholder "-- write your lua code here"
                 , attribute "spellcheck" "false"
                 , onInput UpdateCode
                 ]
-                [ text code ]
+                [ text model.code ]
 
         viewSectionHeader =
             div [ class "section-header" ]
@@ -216,7 +332,12 @@ viewLuaCode code =
                     []
                 ]
     in
-    section [ class "bg-white rounded-lg shadow p-4" ]
+    section
+        [ id "editorPane"
+        , class "flex flex-col flex-[2] border-r border-slate-200 p-4"
+        , style "width" (String.fromFloat (100 * toFraction model.dragVertical) ++ "%")
+        , style "flex" "none"
+        ]
         [ viewSectionHeader
         , viewCodeArea
         ]
@@ -224,26 +345,63 @@ viewLuaCode code =
 
 viewHeader : Html msg
 viewHeader =
-    header [ class "flex items-center gap-3 text-xl font-semibold" ]
+    header [ class "flex items-center gap-3 text-xl font-semibold p-4" ]
         [ h1 []
             [ text "svg logo"
             , text "Lom Playground"
             ]
         , div [ class "flex items-center gap-3" ]
-            [ button [ class "px-3 py-1 rounded border border-slate-200 text-sm" ] [ text "Copy Share Link" ]
+            [ button [ class "px-3 py-1 rounded border border-slate-200 text-sm" ]
+                [ text "Copy Share Link" ]
             ]
         ]
 
 
 subscriptions : Model -> Sub Msg
-subscriptions _ =
-    Sub.batch [ lomStdErr UpdateStdErr, lomStdOut UpdateStdOut ]
+subscriptions model =
+    Sub.batch
+        [ lomStdErr UpdateStdErr
+        , lomStdOut UpdateStdOut
+        , dragSub model.dragHorizontal Horizontal draggedHorizontal
+        , dragSub model.dragVertical Vertical draggedVertical
+        ]
+
+
+dragSub :
+    DragState
+    -> Direction
+    -> ((Float -> Msg) -> Sub Msg)
+    -> Sub Msg
+dragSub dragState direction dragged =
+    case dragState of
+        Static _ ->
+            Sub.none
+
+        Moving _ ->
+            Sub.batch
+                [ BE.onMouseUp <| D.succeed (DragStop direction)
+                , dragged <|
+                    \fraction ->
+                        DragMove direction fraction
+                ]
+
+
+init : () -> ( Model, Cmd msg )
+init _ =
+    ( { code = "print('Hello from Lua in WASM!')"
+      , output = []
+      , input = ""
+      , dragHorizontal = Static 0.5
+      , dragVertical = Static 0.5
+      }
+    , Cmd.none
+    )
 
 
 main : Program () Model Msg
 main =
     Browser.document
-        { init = \() -> ( Model "print('Hello from Lua in WASM!')" [] "", Cmd.none )
+        { init = init
         , view = view
         , update = update
         , subscriptions = subscriptions

@@ -18,3 +18,17 @@ pre {
     white-space: pre-wrap;
     word-break: break-word;
 }
+.divider-x {
+    width: 6px;
+    cursor: col-resize;
+    background-color: rgb(226 232 240); /* slate-200 */
+}
+.divider-y {
+    height: 6px;
+    cursor: row-resize;
+    background-color: rgb(226 232 240);
+}
+.divider-x:hover,
+.divider-y:hover {
+    background-color: rgb(203 213 225); /* slate-300 */
+}
