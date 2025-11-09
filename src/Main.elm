@@ -5,6 +5,7 @@ import Browser.Events as BE
 import Html exposing (Html, button, div, h1, header, main_, pre, section, text, textarea)
 import Html.Attributes exposing (attribute, class, id, placeholder, style)
 import Html.Events exposing (onClick, onInput, onMouseDown)
+import Icons
 import Json.Decode as D
 
 
@@ -200,22 +201,13 @@ viewResult output =
             div [ class "section-header" ]
                 [ div [ class "flex items-center justify-between mb-3" ]
                     [ div [ class "flex items-center gap-2" ]
-                        [ -- svg [ class "w-5 h-5 text-sky-600", fill "none", viewBox "0 0 24 24" ]
-                          --     [ path [ d "M4 6h16M4 12h16M4 18h16", attribute "stroke" "currentColor", attribute "stroke-linecap" "round", attribute "stroke-width" "1.2" ]
-                          --         []
-                          --     , text "                  "
-                          --     ]
-                          -- ,
-                          div []
+                        [ Icons.output "w-10 h-10"
+                        , div []
                             [ div [ class "font-medium" ]
                                 [ text "Output" ]
                             , div [ class "text-xs text-slate-500" ]
                                 [ text "Shows stdout and stderr (errors) from the parser." ]
                             ]
-                        ]
-                    , div [ class "flex items-center gap-2" ]
-                        [ button [ class "text-sm px-2 py-1 rounded border" ]
-                            [ text "Clear                  " ]
                         ]
                     ]
                 , div [ class "underline h-0.5 bg-gradient-to-r from-indigo-600 to-cyan-400" ]
@@ -261,22 +253,13 @@ viewText model =
         [ div [ class "section-header" ]
             [ div [ class "flex items-center justify-between mb-3" ]
                 [ div [ class "flex items-center gap-2" ]
-                    [ -- svg [ class "w-5 h-5 text-orange-500", fill "none", viewBox "0 0 24 24" ]
-                      --     [ path [ d "M4 6h16M4 12h16M4 18h16", attribute "stroke" "currentColor", attribute "stroke-linecap" "round", attribute "stroke-width" "1.2" ]
-                      --         []
-                      --     , text "                  "
-                      --     ]
-                      -- ,
-                      div []
+                    [ Icons.input "w-10 h-10"
+                    , div []
                         [ div [ class "font-medium" ]
                             [ text "Text to parse" ]
                         , div [ class "text-xs text-slate-500" ]
-                            [ text "The input string that will be fed to the grammar." ]
+                            [ text "The input string that will be fed to the parser." ]
                         ]
-                    ]
-                , div [ class "flex items-center gap-2" ]
-                    [ button [ class "text-sm px-2 py-1 rounded border" ]
-                        [ text "Clear                  " ]
                     ]
                 ]
             , div [ class "underline h-0.5 bg-gradient-to-r from-indigo-600 to-cyan-400" ]
@@ -307,13 +290,8 @@ viewLuaCode model =
             div [ class "section-header" ]
                 [ div [ class "flex items-center justify-between mb-3" ]
                     [ div [ class "flex items-center gap-2" ]
-                        [ -- svg [ class "w-5 h-5 text-green-600", fill "none", viewBox "0 0 24 24" ]
-                          --     [ path [ d "M4 6h16M4 12h16M4 18h16", attribute "stroke" "currentColor", attribute "stroke-linecap" "round", attribute "stroke-width" "1.2" ]
-                          --         []
-                          --     , text "                "
-                          --     ]
-                          -- ,
-                          div []
+                        [ Icons.lua "w-10 h-10"
+                        , div []
                             [ div [ class "font-medium" ]
                                 [ text "Lua" ]
                             , div [ class "text-xs text-slate-500" ]
