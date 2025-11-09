@@ -323,14 +323,10 @@ viewLuaCode model =
 
 viewHeader : Html msg
 viewHeader =
-    header [ class "flex items-center gap-3 text-xl font-semibold p-4" ]
-        [ h1 []
-            [ text "svg logo"
+    header [ class "px-4 border-slate-200 border-b-8" ]
+        [ h1 [ class "flex items-center gap-x-3" ]
+            [ Icons.logo "w-20 h-20"
             , text "Lom Playground"
-            ]
-        , div [ class "flex items-center gap-3" ]
-            [ button [ class "px-3 py-1 rounded border border-slate-200 text-sm" ]
-                [ text "Copy Share Link" ]
             ]
         ]
 
