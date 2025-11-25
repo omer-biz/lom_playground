@@ -25,3 +25,4 @@ dist-ssr
 
 build/
 elm-stuff/
+public/init.lua
