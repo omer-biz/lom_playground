@@ -4,7 +4,7 @@ import Browser exposing (Document)
 import Browser.Events as BE
 import Html exposing (Html, button, div, h1, header, main_, pre, section, text, textarea)
 import Html.Attributes exposing (attribute, class, id, placeholder, style)
-import Html.Events exposing (onClick, onInput, onMouseDown)
+import Html.Events as Events exposing (onClick, onInput, onMouseDown)
 import Icons
 import Json.Decode as D
 
@@ -278,13 +278,7 @@ viewLuaCode : Model -> Html Msg
 viewLuaCode model =
     let
         viewCodeArea =
-            textarea
-                [ class "flex-1 w-full font-mono text-sm bg-slate-100 rounded-lg p-3 resize-none focus:outline-none focus:ring-2 focus:ring-blue-400"
-                , placeholder "-- write your lua code here"
-                , attribute "spellcheck" "false"
-                , onInput UpdateCode
-                ]
-                [ text model.code ]
+            luaEditor model.code UpdateCode
 
         viewSectionHeader =
             div [ class "section-header" ]
@@ -319,6 +313,18 @@ viewLuaCode model =
         [ viewSectionHeader
         , viewCodeArea
         ]
+
+
+luaEditor : String -> (String -> msg) -> Html msg
+luaEditor value onInput =
+    Html.node "lua-editor"
+        [ attribute "value" value
+        , Events.on "editorChanged" <|
+            D.map onInput <|
+                D.at [ "target", "value" ] D.string
+        , class "flex-1 w-full font-mono text-sm bg-slate-100 rounded-lg p-3 resize-none focus:outline-none focus:ring-2 focus:ring-blue-400"
+        ]
+        []
 
 
 viewHeader : Html msg
