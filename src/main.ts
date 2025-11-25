@@ -8,6 +8,13 @@ const lomModule = await createLomModule({
     printErr: app.ports.lomStdErr.send,
 });
 
+// mount lua part of the parser at "parser/init.lua"
+lomModule.FS.mkdir("parser");
+const response = await fetch("/init.lua");
+if (response.body != null) {
+    lomModule.FS.writeFile("parser/init.lua", await response.text());
+}
+
 const lom_init = lomModule.cwrap("lom_init", null, []);
 const lom_run = lomModule.cwrap("lom_run", "string", ["string", "string"]);
 const lom_close = lomModule.cwrap("lom_close", null, []);
