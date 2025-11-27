@@ -18,10 +18,10 @@ port listenDrag : String -> Cmd msg
 port stopDrag : String -> Cmd msg
 
 
-port lomStdErr : (String -> msg) -> Sub msg
+port hermesStdErr : (String -> msg) -> Sub msg
 
 
-port lomStdOut : (String -> msg) -> Sub msg
+port hermesStdOut : (String -> msg) -> Sub msg
 
 
 port draggedHorizontal : (Float -> msg) -> Sub msg
@@ -158,7 +158,7 @@ updateDragState model direction newState =
 
 view : Model -> Document Msg
 view model =
-    { title = "Lom Playground"
+    { title = "Hermes Playground"
     , body =
         [ viewHeader
         , viewMain model
@@ -289,7 +289,7 @@ viewLuaCode model =
                             [ div [ class "font-medium" ]
                                 [ text "Lua" ]
                             , div [ class "text-xs text-slate-500" ]
-                                [ text "The parser definition. Lom code to parse the text." ]
+                                [ text "The parser definition. Hermes code to parse the text." ]
                             ]
                         ]
                     , div [ class "flex items-center gap-2" ]
@@ -332,7 +332,7 @@ viewHeader =
     header [ class "px-4 border-slate-200 border-b-8" ]
         [ h1 [ class "flex items-center gap-x-3" ]
             [ Icons.logo "w-20 h-20"
-            , text "Lom Playground"
+            , text "Hermes Playground"
             ]
         ]
 
@@ -340,8 +340,8 @@ viewHeader =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ lomStdErr UpdateStdErr
-        , lomStdOut UpdateStdOut
+        [ hermesStdErr UpdateStdErr
+        , hermesStdOut UpdateStdOut
         , dragSub model.dragHorizontal Horizontal draggedHorizontal
         , dragSub model.dragVertical Vertical draggedVertical
         ]

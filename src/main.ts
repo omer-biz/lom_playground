@@ -1,27 +1,27 @@
-import createLomModule from "../build/lom.js";
+import createHermesModule from "../build/hermes.js";
 import { Elm } from "./Main.elm";
 
 let app = Elm.Main.init();
 
-const lomModule = await createLomModule({
-    print: app.ports.lomStdOut.send,
-    printErr: app.ports.lomStdErr.send,
+const hermesModule = await createHermesModule({
+    print: app.ports.hermesStdOut.send,
+    printErr: app.ports.hermesStdErr.send,
 });
 
 // mount lua part of the parser at "parser/init.lua"
-lomModule.FS.mkdir("parser");
+hermesModule.FS.mkdir("parser");
 const response = await fetch("/init.lua");
 if (response.body != null) {
-    lomModule.FS.writeFile("parser/init.lua", await response.text());
+    hermesModule.FS.writeFile("parser/init.lua", await response.text());
 }
 
-const lom_init = lomModule.cwrap("lom_init", null, []);
-const lom_run = lomModule.cwrap("lom_run", "string", ["string", "string"]);
-const lom_close = lomModule.cwrap("lom_close", null, []);
+const hermes_init = hermesModule.cwrap("hermes_init", null, []);
+const hermes_run = hermesModule.cwrap("hermes_run", "string", ["string", "string"]);
+const hermes_close = hermesModule.cwrap("hermes_close", null, []);
 
-lom_init();
+hermes_init();
 app.ports.runLuaCode.subscribe(function (model: { code: string, input: string }) {
-    lom_run(model.code, model.input);
+    hermes_run(model.code, model.input);
 });
 
 
@@ -71,4 +71,4 @@ app.ports.stopDrag.subscribe(function (orient: string) {
     }
 });
 
-window.addEventListener("beforeunload", lom_close);
+window.addEventListener("beforeunload", hermes_close);

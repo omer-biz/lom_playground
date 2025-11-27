@@ -7,7 +7,7 @@
 
 static lua_State *G_L = NULL;
 
-int lom_init(void) {
+int hermes_init(void) {
   if (G_L)
     return 0;
 
@@ -31,9 +31,9 @@ int lom_init(void) {
   return 1;
 }
 
-int lom_run(const char *script, const char *input) {
+int hermes_run(const char *script, const char *input) {
   if (!G_L) {
-    fprintf(stderr, "[lom] not initialized");
+    fprintf(stderr, "[hermes] not initialized");
     return 0;
   }
 
@@ -49,7 +49,7 @@ int lom_run(const char *script, const char *input) {
   return 1;
 }
 
-void lom_close(void) {
+void hermes_close(void) {
   if (G_L) {
     lua_close(G_L);
     G_L = NULL;
