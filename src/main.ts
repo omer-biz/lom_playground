@@ -10,9 +10,14 @@ const hermesModule = await createHermesModule({
 
 // mount lua part of the parser at "parser/init.lua"
 hermesModule.FS.mkdir("parser");
-const response = await fetch("/init.lua");
-if (response.body != null) {
-    hermesModule.FS.writeFile("parser/init.lua", await response.text());
+const response_init_lua = await fetch("parser/init.lua");
+if (response_init_lua.body != null) {
+    hermesModule.FS.writeFile("parser/init.lua", await response_init_lua.text());
+}
+
+const response_effect_lua = await fetch("effect.lua");
+if (response_effect_lua.body != null) {
+    hermesModule.FS.writeFile("effect.lua", await response_effect_lua.text());
 }
 
 const hermes_init = hermesModule.cwrap("hermes_init", null, []);
