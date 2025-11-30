@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.13)
+option(CMAKE_EXPORT_COMPILE_COMMANDS "Create compile_commands.json" ON)
 project(hermes LANGUAGES C)
 
 set(LUA_DIR ${CMAKE_SOURCE_DIR}/vendor/lua)
