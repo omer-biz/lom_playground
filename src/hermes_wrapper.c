@@ -3,6 +3,7 @@
 #include <lualib.h>
 #include <stdio.h>
 
+#include "effect.h"
 #include "parser.h"
 
 static lua_State *G_L = NULL;
@@ -31,7 +32,7 @@ int hermes_init(void) {
   return 1;
 }
 
-int hermes_run(const char *script, const char *input) {
+void *hermes_run(const char *script, const char *input) {
   if (!G_L) {
     fprintf(stderr, "[hermes] not initialized");
     return 0;
@@ -40,13 +41,42 @@ int hermes_run(const char *script, const char *input) {
   lua_pushstring(G_L, input);
   lua_setglobal(G_L, "_INPUT");
 
+  int top_before = lua_gettop(G_L);
   if (luaL_dostring(G_L, script) != LUA_OK) {
     fprintf(stderr, "Lua error: %s\n", lua_tostring(G_L, -1));
     lua_pop(G_L, 1);
     return 0;
   }
+  int top_after = lua_gettop(G_L);
 
-  return 1;
+  if (top_after == top_before) {
+    printf("returned nothing\n");
+    return NULL;
+  }
+
+  int type = lua_type(G_L, -1);
+
+  if (type == LUA_TNIL) {
+    printf("returned nil\n");
+    lua_pop(G_L, 1);
+    return NULL;
+  }
+
+  if (type != LUA_TTABLE) {
+    printf("returned non table thing\n");
+    lua_pop(G_L, 1);
+    return NULL;
+  }
+
+  lua_getfield(G_L, -1, "kind");
+  if (lua_isnil(G_L, -1)) {
+    printf("returned unknown table\n");
+    lua_pop(G_L, 2);
+    return NULL;
+  }
+
+  printf("kind = %s\n", lua_tostring(G_L, -1));
+  return NULL;
 }
 
 void hermes_close(void) {

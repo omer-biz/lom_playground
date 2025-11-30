@@ -1,8 +1,9 @@
 BUILD_DIR = build
+SRC_DIR = src
 
 all: $(BUILD_DIR)/hermes.js $(BUILD_DIR)/hermes.wasm luasrc
 
-$(BUILD_DIR)/hermes.js $(BUILD_DIR)/hermes.wasm:
+$(BUILD_DIR)/hermes.js $(BUILD_DIR)/hermes.wasm: $(SRC_DIR)
 	emcmake cmake -S . -B $(BUILD_DIR)
 	cmake --build $(BUILD_DIR)
 
