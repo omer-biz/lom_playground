@@ -22,7 +22,7 @@ set(EM_FLAGS
     "-sSTANDALONE_WASM=0"
     "-sNO_EXIT_RUNTIME=1"
     "-sEXPORTED_FUNCTIONS=['_hermes_init','_hermes_run','_hermes_close']"
-    "-sEXPORTED_RUNTIME_METHODS=['cwrap','FS','PATH']"
+    "-sEXPORTED_RUNTIME_METHODS=['cwrap','FS','PATH', 'HEAP32', 'UTF8ToString']"
 )
 
 add_executable(hermes ${LUA_SRCS} ${HERMES_SRCS} ./src/hermes_wrapper.c)

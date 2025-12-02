@@ -1,5 +1,6 @@
 import createHermesModule from "../build/hermes.js";
 import { Elm } from "./Main.elm";
+import readEffect from "./effect_extractor.js";
 
 let app = Elm.Main.init();
 
@@ -7,6 +8,7 @@ const hermesModule = await createHermesModule({
     print: app.ports.hermesStdOut.send,
     printErr: app.ports.hermesStdErr.send,
 });
+
 
 // mount lua part of the parser at "parser/init.lua"
 hermesModule.FS.mkdir("parser");
@@ -21,12 +23,13 @@ if (response_effect_lua.body != null) {
 }
 
 const hermes_init = hermesModule.cwrap("hermes_init", null, []);
-const hermes_run = hermesModule.cwrap("hermes_run", "string", ["string", "string"]);
+const hermes_run = hermesModule.cwrap("hermes_run", "number", ["string", "string"]);
 const hermes_close = hermesModule.cwrap("hermes_close", null, []);
 
 hermes_init();
 app.ports.runLuaCode.subscribe(function (model: { code: string, input: string }) {
-    hermes_run(model.code, model.input);
+    const effectPtr = hermes_run(model.code, model.input);
+    const effect = readEffect(hermesModule, effectPtr);
 });
 
 

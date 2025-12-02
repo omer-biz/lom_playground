@@ -1,7 +1,9 @@
+#include <emscripten/emscripten.h>
 #include <lauxlib.h>
 #include <lua.h>
 #include <lualib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "effect.h"
 #include "parser.h"
@@ -32,7 +34,8 @@ int hermes_init(void) {
   return 1;
 }
 
-void *hermes_run(const char *script, const char *input) {
+EMSCRIPTEN_KEEPALIVE
+Effect *hermes_run(const char *script, const char *input) {
   if (!G_L) {
     fprintf(stderr, "[hermes] not initialized");
     return 0;
@@ -74,9 +77,13 @@ void *hermes_run(const char *script, const char *input) {
     lua_pop(G_L, 2);
     return NULL;
   }
+  lua_pop(G_L, 1);
 
-  printf("kind = %s\n", lua_tostring(G_L, -1));
-  return NULL;
+  Effect *e = parse_effect(G_L, -1);
+  lua_pop(G_L, 1);
+
+  printf("returning: %p", e);
+  return e;
 }
 
 void hermes_close(void) {
