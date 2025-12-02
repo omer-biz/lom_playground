@@ -7,6 +7,7 @@ import Html.Attributes exposing (attribute, class, id, placeholder, style)
 import Html.Events as Events exposing (onClick, onInput, onMouseDown)
 import Icons
 import Json.Decode as D
+import Json.Encode as E
 
 
 port runLuaCode : { code : String, input : String } -> Cmd msg
@@ -52,6 +53,12 @@ type DragState
 type Direction
     = Horizontal
     | Vertical
+
+
+type alias Flags =
+    { parser_code : Maybe String
+    , input : Maybe String
+    }
 
 
 type Msg
@@ -366,11 +373,20 @@ dragSub dragState direction dragged =
                 ]
 
 
-init : () -> ( Model, Cmd msg )
-init _ =
-    ( { code = "print('Hello from Lua in WASM!')"
+init : E.Value -> ( Model, Cmd msg )
+init rawFlags =
+    let
+        flags =
+            case D.decodeValue flagsDecoder rawFlags of
+                Ok f ->
+                    f
+
+                Err _ ->
+                    { parser_code = Nothing, input = Nothing }
+    in
+    ( { code = Maybe.withDefault "print('Hello from Lua in WASM!')" flags.parser_code
       , output = []
-      , input = ""
+      , input = Maybe.withDefault "" flags.input
       , dragHorizontal = Static 0.5
       , dragVertical = Static 0.5
       }
@@ -378,7 +394,14 @@ init _ =
     )
 
 
-main : Program () Model Msg
+flagsDecoder : D.Decoder Flags
+flagsDecoder =
+    D.map2 (\c i -> { parser_code = c, input = i })
+        (D.maybe (D.field "parser_code" D.string))
+        (D.maybe (D.field "_input" D.string))
+
+
+main : Program E.Value Model Msg
 main =
     Browser.document
         { init = init

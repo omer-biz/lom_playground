@@ -2,7 +2,12 @@ import createHermesModule from "../build/hermes.js";
 import { Elm } from "./Main.elm";
 import readEffect from "./effect_extractor.js";
 
-let app = Elm.Main.init();
+let app = Elm.Main.init({
+    flags: {
+        parser_code: localStorage.getItem("parser_code"),
+        _input: localStorage.getItem("_input")
+    }
+});
 
 const hermesModule = await createHermesModule({
     print: app.ports.hermesStdOut.send,
