@@ -37,8 +37,6 @@ class LuaEditor extends HTMLElement {
         });
 
         const initVal = this.getAttribute("value") || "";
-        console.log("init", initVal);
-
         this._editor.setValue(initVal, -1);
 
         this._editor.session.on("change", () => {

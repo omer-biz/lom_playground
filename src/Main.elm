@@ -31,6 +31,9 @@ port draggedHorizontal : (Float -> msg) -> Sub msg
 port draggedVertical : (Float -> msg) -> Sub msg
 
 
+port localStorageSetItem : { name : String, value : String } -> Cmd msg
+
+
 type alias Model =
     { code : String
     , output : List ConsoleOutput
@@ -76,7 +79,13 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Run ->
-            ( { model | output = [] }, runLuaCode { code = model.code, input = model.input } )
+            ( { model | output = [] }
+            , Cmd.batch
+                [ runLuaCode { code = model.code, input = model.input }
+                , localStorageSetItem { name =  "parser_code", value =  model.code }
+                , localStorageSetItem  {  name = "_input" , value =  model.input }
+                ]
+            )
 
         UpdateCode code ->
             ( { model | code = code }, Cmd.none )

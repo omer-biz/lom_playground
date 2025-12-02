@@ -37,6 +37,10 @@ app.ports.runLuaCode.subscribe(function (model: { code: string, input: string })
     const effect = readEffect(hermesModule, effectPtr);
 });
 
+app.ports.localStorageSetItem.subscribe(function (pair: { name: string, value: string }) {
+    localStorage.setItem(pair.name, pair.value);
+});
+
 
 const editorPane = document.getElementById("editorPane");
 const rightPane = document.getElementById("rightPane");
