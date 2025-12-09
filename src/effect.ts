@@ -3,6 +3,9 @@ type Effect = {
   kind: string,
   content: string,
   path: string,
+  message: string,
+  mode: string,
+  url: string,
 }
 
 export function readEffect(w_module, ptr) {
@@ -41,6 +44,10 @@ export function readEffect(w_module, ptr) {
 export function handleEffect(effect: Effect) {
   switch (effect.kind) {
     case "network":
+      const _response = fetch(effect.url, {
+        method: effect.mode,
+        body: effect.content,
+      })
       break;
     case "file":
       const blob = new Blob([effect.content], { type: 'text/plain' });
@@ -57,6 +64,7 @@ export function handleEffect(effect: Effect) {
       URL.revokeObjectURL(url);
       break;
     case "error":
+      console.error("error:", effect.message);
       break;
     default:
       console.log("unknow effect occured");
