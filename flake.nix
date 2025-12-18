@@ -1,5 +1,5 @@
 {
-  description = "Hermes Playground dev dependencies";
+  description = "Hermes playground";
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
   outputs = { self, nixpkgs }:
@@ -7,11 +7,9 @@
     system = "x86_64-linux";
     pkgs = import nixpkgs { inherit system; };
   in {
-    defShells.${system}.default = pkgs.mkShell {
+    devShells.${system}.default = pkgs.mkShell {
       packages = with pkgs; [
         cmake
-        make
-        emscripten
         nodejs_20
         elmPackages.elm
       ];
